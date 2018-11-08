@@ -1,0 +1,399 @@
+#include <iostream>
+#include <vector>
+#include <list>
+#include <queue>
+#include <limits>
+#include <fstream>
+using namespace std;
+
+
+struct Status{
+
+    int state = 0;
+    int distance = numeric_limits<int>::max();
+    int parent = -1;
+
+};
+
+class Graph{
+
+private:
+    vector< list<int> > adjacencyList;
+    int vertexCounter;
+    list<int> li;
+
+
+public:
+    // Constructor
+    Graph(int v){
+      vertexCounter = v;
+
+
+     for( int i = 0; i < vertexCounter; i++)
+        adjacencyList.push_back(li);
+
+    }
+
+
+    //Another Constructor read from file
+
+        Graph(char *fileName, int vertexCounter){
+
+            this->vertexCounter = vertexCounter;
+
+         //   for( int i = 0; i < vertexCounter; i++)
+         //    adjacencyList.push_back(li);
+
+            ifstream file;
+            file.open(fileName, ios::in);
+
+            if(!file){
+                cout << " Error: " << fileName << " not found!" << endl;
+                return;
+            }
+
+            int n;
+
+            if(file.is_open()){
+                    for(int i = 0; i < this->vertexCounter; i++){
+                         // adjacencyMatrix[i] = new bool[vertexCounter];
+                        for( int j = 0; j < this->vertexCounter; j++){
+
+                               file>> n;
+                                 if( n != 0){
+                                li.push_back(j);
+                             }
+                        }
+                       adjacencyList.push_back(li);
+                       li.clear();
+                    }
+            }
+
+
+        }
+
+
+    // Destructor
+    ~Graph(){}
+
+
+      // add edge
+       void addEdge( int i , int j){
+
+           if( (i >= 0 && i < vertexCounter) && ( j >= 0 && j < vertexCounter) )
+             adjacencyList[i].push_back(j);
+      }
+
+      //add Undirected edge
+      void addUndirectedEdge(int i , int j){
+
+          if( (i >= 0 && i < vertexCounter) && ( j >= 0 && j < vertexCounter) ){
+            addEdge(i,j);
+            addEdge(j,i);
+          }
+      }
+
+      // remove edge
+      void removeEdge(int vertex, int edge){
+
+          list<int>::iterator point;
+
+              if( vertex >=0 && vertex <= adjacencyList.size() ){
+                point = adjacencyList[vertex].begin();
+
+                while(point!= adjacencyList[vertex].end()){
+                    if(edge == *point){
+                        adjacencyList[vertex].erase(point);
+                        break;
+                    }
+                    point++;
+                }
+              }
+      }
+
+
+      // adjacency list
+      void showAdjacencyList(int vertex){
+
+            if( vertex >= 0 && vertex < adjacencyList.size() ){
+                list<int>::iterator point;
+
+                point = adjacencyList[vertex].begin();
+
+                cout << "Adjacency list of [" << (char)(vertex+65) << "] : ";
+
+                while( point != adjacencyList[vertex].end() ){
+
+                    cout << " " << (char)(65+*point);
+                    point++;
+                }
+              cout << endl;
+
+
+            }
+      }
+
+       //Find out degree
+       int findOutDegree(int vertex){
+           return findDegree(vertex);
+
+       }
+
+       //find InDegree
+       int findInDegree(int vertex){
+
+             int inDegree = 0;
+
+            if( vertex >= 0 && vertex < adjacencyList.size() ){
+                list<int>::iterator point;
+
+                for( int i = 0; i < adjacencyList.size(); i++){
+                point = adjacencyList[i].begin();
+
+                while( point != adjacencyList[i].end() ){
+
+                    if( *point == vertex ){
+                        inDegree++;
+                    }
+
+                    point++;
+                }
+
+                }
+                return inDegree;
+
+            }
+       }
+
+       //get edge
+
+       bool isEdge(int i , int j){
+
+          if( ( i >= 0 && i < vertexCounter) && ( j >= 0 && j < vertexCounter)){
+
+               list<int>::iterator point = adjacencyList[i].begin();
+
+               while(point != adjacencyList[i].end() ){
+
+                   if(*point == j){
+                    return true;
+                   }
+                   point++;
+               }
+                return false;
+          }
+       }
+
+
+      //counting degree undirected graph
+      int findDegree(int vertex){
+
+            int counter = 0;
+
+            if( vertex >= 0 && vertex < adjacencyList.size() ){
+                list<int>::iterator point;
+
+                point = adjacencyList[vertex].begin();
+
+
+                while( point != adjacencyList[vertex].end() ){
+                    counter++;
+                    point++;
+                }
+                return counter;
+
+            }
+      }
+
+
+      // Show all adjacency list
+         void show(){
+
+          list<int>:: iterator point;
+
+         for( int i = 0; i < adjacencyList.size(); i++){
+
+                showAdjacencyList(i);
+            }
+            cout << "\n";
+         }
+
+
+
+    // get nodes counter
+    int getVertexNumber(){
+
+        return adjacencyList.size();
+    }
+
+    //get vector
+       vector < list<int> > getList(){
+        return adjacencyList;
+    }
+
+    //BFS
+
+    void BFS(Graph graph , int vertex){
+
+          vector < list<int> > myVec = graph.getList();
+          int vCounter = graph.getVertexNumber();
+          Status *st = new Status[vCounter];
+          int u;
+          list<int>::iterator point;
+
+          st[vertex].state = 1;
+          st[vertex].distance = 0;
+          st[vertex].parent = -1;
+
+          queue<int> myQueue;
+
+          myQueue.push(vertex);
+
+          while( !myQueue.empty() ){
+
+            u = myQueue.front();
+            myQueue.pop();
+
+            point = myVec[u].begin();  // get list pointer
+
+          //  cout << "vertex: " << (char)(65+u) << " parent: " << (char)(65+st[u].parent) << " distance: " << st[u].distance << endl;
+
+            while( point != myVec[u].end() ){
+
+                        if( st[*point].state == 0){
+                           st[*point].state = 1;
+                           st[*point].distance = st[u].distance + 1;
+                           st[*point].parent = u;
+                           myQueue.push(*point);
+
+                        }
+                        point++;
+
+            }
+
+          }
+//              for( int i = 0; i < vertexCounter; i++){
+//
+//                cout << st[i].parent << " ," ;
+//              }
+
+               showLevel(st,vertex);
+
+        } // end of BFS
+
+
+
+      void showLevel(Status *st , int vertex){
+
+         int counter = 0;
+         vector< list<int> > myVec;
+         list<int> myList;
+
+
+         cout << "Root: " << (char)(65+vertex) << endl;
+
+         for( int i = 0; i < vertexCounter; i++){
+
+             if( vertex == st[i].parent ){
+              //  cout << "\nLevel: 1 - > " << (char)(65+i) << endl;
+                myList.push_back(i);
+                counter++;
+             }
+
+             if( counter >= vertexCounter) break;
+         }
+
+       //  cout << "set 1 done" << endl;
+
+
+
+          myVec.push_back(myList);
+
+           myList.clear();
+           list<int>::iterator pointer;
+           int n = 0;
+
+         for( int i = 0; i < myVec.size(); i++ ){
+
+               pointer = myVec[i].begin();
+
+               while( pointer != myVec[i].end() ){
+
+                 for( int j = 0; j < vertexCounter; j++){
+
+                    if( *pointer == st[j].parent ){
+
+                        myList.push_back(j);
+
+                        counter++;
+                       n++;
+                    }
+                 }
+
+                   pointer++;
+
+                   if( counter >= vertexCounter) break;
+               }
+
+               if( n > 0){
+                myVec.push_back(myList);
+               }
+
+               myList.clear();
+               n = 0;
+
+               if( counter >= vertexCounter) break;
+         }
+
+       //  cout << "set 2 done" << endl;
+
+         // print the level
+
+         for( int i = 0; i < myVec.size(); i++){
+
+              pointer = myVec[i].begin();
+
+              cout << "Level : " << (i+1 ) << " ( ";
+
+              while( pointer != myVec[i].end() ){
+
+                   cout  << (char)(65+ *pointer) << "  " ;
+                   pointer++;
+              }
+
+              cout << ")" <<endl;
+         }
+
+      }
+
+
+
+
+
+
+
+};
+
+
+int main()
+{
+     Graph graph("graph.txt",5);
+
+//     graph.addUndirectedEdge(1,2);
+//     graph.addUndirectedEdge(1,4);
+//     graph.addUndirectedEdge(4,3);
+//     graph.addUndirectedEdge(0,3);
+//     graph.addUndirectedEdge(2,0);
+//     graph.addUndirectedEdge(2,3);
+//     graph.addUndirectedEdge(0,4);
+
+     graph.show();
+
+
+    cout <<"\n\nBFS: Level"<<endl;
+    graph.BFS(graph,4);
+
+
+
+      return 0;
+}
